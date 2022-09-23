@@ -34,7 +34,7 @@ userRouter.get("/:userId/feed", async (req, res) => {
   } catch (error) {
     return res
       .status(500)
-      .send({ message: "Error creating feed", error: error });
+      .send({ message: "Error getting feed",success:false });
   }
 });
 userRouter.post("/:userId/feed", uploads.single("image"), async (req, res) => {

@@ -8,8 +8,8 @@ const authenticate = (req, res, next) => {
   jwt.verify(token, process.env.JWT_SECRET_KEY, (err, success) => {
     if (err) {
       return res
-        .status(407)
-        .send({ message: "Please Login Again", success: false });
+        .status(403)
+        .json({ message: "Please Login Again, Token expired!", success: false });
     } else {
       (req.body.userId = success.userId),
         (req.body.email = success.email),
