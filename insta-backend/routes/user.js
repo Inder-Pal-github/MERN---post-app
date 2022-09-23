@@ -30,11 +30,20 @@ userRouter.get("/:userId/feed", async (req, res) => {
   try {
     const { userId } = req.params;
     const feeds = await Feed.find({ userId });
-    res.status(200).send({ message: "Feed found", data: feeds, success: true });
+    console.log(feeds);
+    if (feeds.length > 0) {
+      return res
+        .status(200)
+        .send({ message: "Your Feeds", data: feeds, success: true });
+    } else {
+      return res
+        .status(200)
+        .send({ message: "No Feeds Posted Yet!", data: feeds, success: true });
+    }
   } catch (error) {
     return res
       .status(500)
-      .send({ message: "Error getting feed",success:false });
+      .send({ message: "Error getting feed", success: false });
   }
 });
 userRouter.post("/:userId/feed", uploads.single("image"), async (req, res) => {
@@ -57,6 +66,38 @@ userRouter.post("/:userId/feed", uploads.single("image"), async (req, res) => {
     return res
       .status(500)
       .send({ message: "Error creating feed", error: error });
+  }
+});
+userRouter.patch("/:userId/feed/:postId", async (req, res) => {
+  try {
+    console.log(req.params);
+    res.send("updated");
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ message: "Error deleting post", success: false });
+  }
+});
+userRouter.delete("/:userId/feed/:postId", async (req, res) => {
+  try {
+    const { userId, postId } = req.params;
+    const feed = await Feed.findOneAndDelete({
+      $and: [{ userId }, { postId }],
+    });
+    console.log(feed);
+    if (feed) {
+      return res
+        .status(200)
+        .send({ message: "Feed deleted successfully", success: true });
+    } else {
+      return res
+        .status(404)
+        .send({ message: "Feed not found", success: false });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .send({ message: "Error deleting post", success: false });
   }
 });
 userRouter.get("/", (req, res) => {
