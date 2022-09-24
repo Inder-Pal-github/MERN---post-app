@@ -69,7 +69,7 @@ userRouter.patch("/:userId/feed/:postId", async (req, res) => {
     const { userId, postId } = req.params;
     const feed = await Feed.findOneAndUpdate(
       { userId, _id: postId },
-      { ...req.body }
+      { ...req.body,tags:req.body.tags.split(", ") }
     );
     if (feed) {
       return res
