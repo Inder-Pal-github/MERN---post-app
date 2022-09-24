@@ -1,19 +1,9 @@
 const { User } = require("../models/UserModel");
 const { Router } = require("express");
-const multer = require("multer");
+require("dotenv").config();
+const upload = require("../utils/multer");
 const { Feed } = require("../models/FeedModel");
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "./uploads");
-  },
-  filename: function (req, file, cb) {
-    cb(null, file.originalname);
-  },
-});
-const uploads = multer({
-  storage: storage,
-});
+const cloudinary = require("../utils/cloudinary");
 
 const userRouter = Router();
 
@@ -26,6 +16,8 @@ userRouter.get("/:userId", async (req, res) => {
     return res.status(404).send("User not found");
   }
 });
+
+// GET YOUR FEEDS  =============================================================
 userRouter.get("/:userId/feed", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -45,23 +37,28 @@ userRouter.get("/:userId/feed", async (req, res) => {
       .send({ message: "Error getting feed", success: false });
   }
 });
-userRouter.post("/:userId/feed", uploads.single("image"), async (req, res) => {
+// =================================================================  ============
+
+// UPLOAD A  NEW FEED =================================================================
+userRouter.post("/:userId/feed", upload.single("image"), async (req, res) => {
   try {
     const { userId } = req.params;
     const { title, description, tags } = req.body;
-    const image = `${__dirname}/uploads/${req.file.originalname}`;
+    const result = await cloudinary.uploader.upload(req.file.path);
     const feed = new Feed({
       title,
       description,
       tags: tags.split(", "),
-      image,
+      image: result.secure_url,
+      cloudinary_id: result.public_id,
       userId,
     });
     await feed.save();
     return res
       .status(201)
-      .send({ message: "New Feed created successfully", success: true, feed });
+      .send({ message: "New Feed created successfully", success: true });
   } catch (error) {
+    console.log(error);
     return res
       .status(500)
       .send({ message: "Error creating feed", error: error });
@@ -70,7 +67,10 @@ userRouter.post("/:userId/feed", uploads.single("image"), async (req, res) => {
 userRouter.patch("/:userId/feed/:postId", async (req, res) => {
   try {
     const { userId, postId } = req.params;
-    const feed = await Feed.findOneAndUpdate({userId,_id:postId},{...req.body});
+    const feed = await Feed.findOneAndUpdate(
+      { userId, _id: postId },
+      { ...req.body }
+    );
     if (feed) {
       return res
         .status(200)
@@ -89,7 +89,7 @@ userRouter.patch("/:userId/feed/:postId", async (req, res) => {
 userRouter.delete("/:userId/feed/:postId", async (req, res) => {
   try {
     const { userId, postId } = req.params;
-    const feed = await Feed.findOneAndDelete({userId,_id:postId});
+    const feed = await Feed.findOneAndDelete({ userId, _id: postId });
     if (feed) {
       return res
         .status(200)

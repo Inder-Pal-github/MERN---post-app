@@ -1,28 +1,30 @@
 const express = require("express");
+const app = express();
+
 const cors = require("cors");
 const { authRouter } = require("./routes/auth");
 const { connection } = require("./config/db");
 const { userRouter } = require("./routes/user");
 const { authenticate } = require("./middlewares/authenticate");
-const app = express();
 require("dotenv").config();
 const PORT = process.env.PORT || 8080;
 
-// Middlewares 
+// Middlewares
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(cors({
-  origin:"http://localhost:3000"
-}));
-app.use("/static",express.static("./uploads"));
-// Routes 
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+  })
+);
+// Routes
 app.get("/", (req, res) => {
   res.status(200).send({ message: "Instagram Clone", success: true });
 });
 
 app.use("/auth", authRouter);
 app.use(authenticate);
-app.use('/profile',userRouter);
+app.use("/profile", userRouter);
 
 app.listen(PORT, async () => {
   try {
